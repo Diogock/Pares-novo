@@ -1,0 +1,4 @@
+# D2: pares só dentro do mesmo setor B3
+extends: ../base.yaml
+selection:
+  same_sector: true
