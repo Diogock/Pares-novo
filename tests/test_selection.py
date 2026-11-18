@@ -35,17 +35,17 @@ def recall(ds: Dataset, cfg: Config, synth: SyntheticData) -> float:
 
 def test_cointegration_recall_default(dataset: Dataset, synth_cfg: Config,
                                       synth: SyntheticData) -> None:
-    # Meta do CLAUDE.md é ≥ 90%. Com o pré-teste I(1) (5% de falso positivo por perna)
-    # o default fica em ~77%. Ver discussão no PR.
-    assert recall(dataset, synth_cfg, synth) >= 0.75
+    # Meta do CLAUDE.md é ≥ 90%; com o default (sem pré-teste I(1), D9) fica em ~87%.
+    assert not synth_cfg.selection.require_i1
+    assert recall(dataset, synth_cfg, synth) >= 0.85
 
 
-def test_cointegration_recall_without_i1_pretest(synth_dir: Path, synth: SyntheticData) -> None:
+def test_cointegration_recall_with_i1_pretest(synth_dir: Path, synth: SyntheticData) -> None:
     raw = synth_raw(synth_dir)
-    raw["selection"]["require_i1"] = False
+    raw["selection"]["require_i1"] = True
     cfg = config_from_dict(raw)
     ds, _ = build_dataset(cfg, "/")
-    assert recall(ds, cfg, synth) >= 0.85
+    assert recall(ds, cfg, synth) >= 0.75
 
 
 def test_selected_specs_are_consistent(dataset: Dataset, synth_cfg: Config) -> None:

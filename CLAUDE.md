@@ -124,7 +124,7 @@ Etapa A, pré-filtro (reduz combinações):
 Etapa B, métodos (plugáveis, um módulo cada):
 1. **`distance`**: SSD entre preços normalizados (base 1 no início da janela). Ranking crescente.
 2. **`cointegration`** (default):
-   - Log-preços I(1) por ADF.
+   - Log-preços I(1) por ADF: **desativado** por default (`selection.require_i1: false`, D9).
    - Regressão `ln P_A = α + γ ln P_B + ε`. Teste nos dois sentidos e fica com a ordem de menor p-valor.
    - Resíduo estacionário em ≥ 2 de 3 testes (ADF, PP, KPSS) a 5%.
    - Exclui γ ≤ 0.
@@ -366,7 +366,7 @@ python scripts/run_backtest.py  --config configs/base.yaml                 # res
 - [x] `selection/cointegration.py` e `selection/distance.py`
 - [x] `signal/state_machine.py` (seção 5.4 completa, 100% de cobertura)
 - **Aceite:** em dados sintéticos, recupera ≥ 90% dos pares plantados; máquina de estados com 100% de cobertura de transições
-  - Status: recall de ~77% no default e ~87% sem o pré-teste I(1) (HL plantada de 4–7 dias). Ver D9.
+  - Status: recall de ~87% com o default (sem pré-teste I(1)); ~77% com ele. HL plantada de 4–7 dias. Ver D9.
 
 ### Fase 3: backtest
 - [x] `engine.py`, `costs.py`, `sizing.py`, `constraints.py`
@@ -403,7 +403,7 @@ python scripts/run_backtest.py  --config configs/base.yaml                 # res
 | D6 | Stop de tempo | Fixo de 50 dias vs múltiplo da meia-vida | **50 dias fixo**, configurável |
 | D7 | Taxa BTC histórica | Fonte disponível? | **3% a.a.** fixo |
 | D8 | Metas de aceite da fase 4 | Sharpe, correlação, capacidade | A definir com o gestor |
-| D9 | Pré-teste I(1) por ADF em cada perna | Manter / remover | Em aberto: custa ~10% de recall em dados sintéticos (`selection.require_i1`) |
+| D9 | Pré-teste I(1) por ADF em cada perna | Manter / remover | **Desativado**: custava ~10% de recall em dados sintéticos (`selection.require_i1: false`) |
 | D10 | Custos e caixa | — | **4 bps por R$ negociado**; caixa a CDI − 4 bps a.a. |
 
 ## 12. Referências

@@ -86,7 +86,7 @@ class SelectionConfig(_Strict):
     stationarity_tests: list[Literal["adf", "pp", "kpss"]]
     min_tests_passed: int = Field(ge=1)
     pvalue: float = Field(gt=0, lt=1)
-    require_i1: bool = True
+    require_i1: bool = False
     adf_lags: int = Field(ge=0)
     half_life: HalfLifeBounds
     max_hurst: float

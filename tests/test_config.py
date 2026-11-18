@@ -14,6 +14,7 @@ def test_base_yaml_loads_with_documented_defaults() -> None:
     assert cfg.windows.formation_days == 252
     assert cfg.windows.trading_days == 63
     assert cfg.selection.method == "cointegration"
+    assert cfg.selection.require_i1 is False
     assert cfg.signal.entry_z == 2.0 and cfg.signal.stop_z == 4.0
     assert cfg.signal.execution == "close_t1"
     assert cfg.sizing.leg_pct_nav == 0.01

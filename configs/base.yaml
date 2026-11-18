@@ -48,7 +48,7 @@ selection:
   stationarity_tests: [adf, pp, kpss]
   min_tests_passed: 2
   pvalue: 0.05
-  require_i1: true                    # pré-teste ADF de I(1) em cada perna
+  require_i1: false                   # pré-teste ADF de I(1) em cada perna (D9: desativado)
   adf_lags: 1                         # defasagens do ADF no resíduo (Engle-Granger)
   half_life: {min: 3, max: 40}
   max_hurst: 0.5
