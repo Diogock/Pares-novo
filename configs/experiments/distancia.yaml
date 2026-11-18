@@ -1,0 +1,4 @@
+# Método de distância (Perlin, 2009) para comparar com cointegração
+extends: ../base.yaml
+selection:
+  method: distance

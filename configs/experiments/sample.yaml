@@ -1,0 +1,7 @@
+# Roda o pipeline sobre a amostra sintética versionada em data/sample/
+extends: ../base.yaml
+data:
+  raw_dir: data/sample
+  processed_dir: data/processed/sample
+  files:
+    sectors: data/sample/sectors.xlsx

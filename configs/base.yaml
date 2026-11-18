@@ -1,0 +1,101 @@
+# Defaults do modelo. Fonte da verdade: CLAUDE.md (seções 3 a 8).
+# Experimentos em configs/experiments/*.yaml usam `extends: ../base.yaml`
+# e sobrescrevem só o que muda.
+
+data:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  files:
+    prices_adj: prices_adj.txt        # RT116, ajustado por tudo
+    prices_raw: prices_raw.txt        # fechamento sem ajuste (lote, preço mínimo, turnover)
+    volume: volume.txt                # quantidade de ações negociadas
+    market: market.txt                # CDI (índice acumulado), IBOV, IBRA
+    ibra_composition: ibra_composition.txt   # opcional; sem ele usa universe.source=liquidity_proxy
+    sectors: configs/sectors.xlsx     # Excel auxiliar editável
+    vwap: null                        # opcional, só para signal.execution=vwap_t1
+  volume_kind: shares                 # shares (qtd × preço sem ajuste) | brl (já em R$)
+  delimiter: ","
+  date_format: "%d/%m/%Y"
+  na_values: ["#N/A", "#N/A N/A", "#N/A Field Not Applicable", "#N/A Invalid Security", ""]
+  market_columns:
+    cdi_index: "BZACCETP Index"
+    ibov: "IBOV Index"
+    ibra: "IBRA Index"
+  calendar: BVMF
+  max_ffill_days: 1
+  max_abs_daily_return: 0.40
+  auto_drop_duplicates: true          # remove séries duplicadas (ticker antigo e novo)
+
+universe:
+  index: IBRA
+  source: composition                 # composition | liquidity_proxy
+  proxy_top_n: 150                    # plano B: top N por volume financeiro a cada quadrimestre
+  min_adtv_brl: 10_000_000
+  adtv_window: 63
+  min_trading_days_pct: 0.98
+  min_price: 2.0
+  max_btc_rate: 0.05
+  exclude_events: false               # sem base de eventos corporativos na v1
+
+windows:
+  formation_days: 252
+  trading_days: 63
+
+selection:
+  method: cointegration               # distance | cointegration | kalman (fase 5)
+  same_sector: false
+  min_corr: 0.5
+  stationarity_tests: [adf, pp, kpss]
+  min_tests_passed: 2
+  pvalue: 0.05
+  require_i1: false                   # pré-teste ADF de I(1) em cada perna (D9: desativado)
+  adf_lags: 1                         # defasagens do ADF no resíduo (Engle-Granger)
+  half_life: {min: 3, max: 40}
+  max_hurst: 0.5
+  min_crossings: 12
+  gamma_bounds: [0.2, 5.0]
+  distance_candidates: 100            # método distance: top N por SSD antes do ranking por Sharpe
+
+signal:
+  zscore_mode: fixed                  # fixed | ewma
+  ewma_lambda: 0.97
+  entry_z: 2.0
+  exit_z_long: 0.5
+  exit_z_short: 0.75
+  stop_z: 4.0
+  stop_loss_pct: 0.07
+  time_stop_days: 50
+  cooldown_days: 5
+  execution: close_t1                 # close_t1 | vwap_t1 | open_t1
+  retest_on_rebalance: true           # reteste de cointegração dos pares abertos a cada rebalanceamento
+
+portfolio:
+  n_pairs: 20
+  max_pairs_per_stock: 2
+  max_sector_pct: 0.30
+  include_same_issuer: true           # D3: pares ON/PN entram no book (reportados à parte)
+  max_gross_leverage: 2.0             # teto de exposição bruta / NAV
+
+sizing:
+  mode: gamma                         # gamma | dollar | beta
+  leg_pct_nav: 0.01                   # 1% do NAV por perna (bruto do par = 2%)
+  beta_window: 252
+  lot_size: 100
+
+costs:
+  trading_cost_bps: 4                 # custo total por R$ negociado (corretagem+emolumentos+slippage)
+  btc_fallback_rate: 0.03             # aluguel a.a. sobre a perna vendida
+  cash_spread_bps: 4                  # caixa rende CDI − 4 bps a.a.
+
+backtest:
+  start: 2008-01-02
+  end: null                           # null = última data disponível
+  calibration_end: 2012-12-31         # 2009–2012: calibração de parâmetros
+  oos_start: 2013-01-01               # OOS puro: não usar para escolher nada
+  initial_capital: 100_000_000
+  subperiods:
+    - [2009-01-01, 2012-12-31]
+    - [2013-01-01, 2016-12-31]
+    - [2017-01-01, 2019-12-31]
+    - [2020-01-01, 2022-12-31]
+    - [2023-01-01, null]
