@@ -16,6 +16,8 @@ Nada desta pasta é importado por `src/pairs_ibra/`.
 | `data/bloomberg_tickers.csv` | Pronto para o export Bloomberg: `XXXX34 BZ Equity`, `AAPL US Equity` e a paridade |
 | `data/resumo.md` | Contagens por depositária, bolsa, país, setor e tipo de lastro |
 | `ESTRATEGIAS.md` | Ideias de estratégia, priorizadas |
+| `MODELOS.md` | Especificação dos modelos em teste: tendência setorial em ETFs e single names com dividendos e tendência |
+| `data/bloomberg_request/` | Listas de tickers para o export Bloomberg desses modelos (`scripts/make_bloomberg_request.py`) |
 
 Coleta de 2026-11-25.
 
