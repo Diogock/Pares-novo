@@ -1,0 +1,6 @@
+extends: ../base.yaml
+name: setorial_completo
+sector:
+  universe: completo
+backtest:
+  model: sector

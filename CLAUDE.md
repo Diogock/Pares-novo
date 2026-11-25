@@ -284,7 +284,7 @@ pairs-ibra/
 │   └── daily_signals.py
 ├── tests/
 ├── results/                   # (gitignored)
-└── BDR/                       # frente separada: BDRs não patrocinados (lista, scripts, ideias); não é importada por src/
+└── BDR/                       # frente separada: BDRs (lista, ideias e o pacote bdr_models em BDR/src, spec em BDR/MODELOS.md); src/pairs_ibra não importa nada dela
 ```
 
 ### 7.1 Interfaces-chave

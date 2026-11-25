@@ -1,6 +1,6 @@
 # Especificação dos modelos BDR (v1)
 
-> Fonte da verdade dos modelos da pasta `BDR/`. Status: **rascunho para validação**. Os itens marcados ⚠️ ainda aguardam confirmação.
+> Fonte da verdade dos modelos da pasta `BDR/`. Status: **especificação validada; implementação em `BDR/src/bdr_models/`, aguardando dados reais**.
 > As convenções de código, custos e caixa seguem o `CLAUDE.md` da raiz, salvo quando indicado aqui.
 
 ## 0. Base comum
@@ -13,7 +13,7 @@
 | Execução | Sinal no fechamento de *t*, execução no fechamento de *t+1* |
 | Custos | 4 bps por R$ negociado. Aluguel do IVVB11 a 3% a.a. sobre a perna vendida |
 | Caixa | Todo o caixa, inclusive o da venda descoberta, rende CDI − 4 bps a.a. |
-| Beta | 252 dias de retornos diários, **calculado em US$** (ativo vs. IVV), recalculado mensalmente e limitado a [0,5; 2,0] ⚠️ |
+| Beta | 252 dias de retornos diários, **calculado em US$** (ativo vs. IVV), recalculado no último pregão do mês e limitado a [0,5; 2,0]. Sem histórico (< 126 dias), usa 1,0 |
 | Período | Dados desde 2008, calibração em 2009–2012 e OOS de 2013 em diante (como no modelo do IBRA) |
 | Métricas | As do `CLAUDE.md` §6.1, mais a exposição líquida a dólar, a correlação entre os modelos e o Sharpe sobre o CDI |
 
@@ -36,7 +36,7 @@ A regra é aplicada sobre a série que é o PnL de cada variante:
 | `long_only` | `P_R$ / índice CDI` |
 | `ls_beta`, `ls_notional` | `P_R$ / P_IVVB11_R$` |
 
-Parâmetros: médias móveis de **5, 10 e 20** dias e máximas e mínimas de 5, 10 e 20 dias. Há também uma versão "lenta" com janelas mais longas (ver 4.1). A regra exata de combinação é ⚠️ (ver 4.1).
+Parâmetros: médias móveis de **5, 10 e 20** dias, máxima de 20 e mínima de 10. Há também uma versão "lenta" com janelas ×4 (20/40/80). A regra está em 4.1.
 
 ## 1. Modelo 1: tendência setorial em ETFs
 
@@ -50,7 +50,7 @@ Parâmetros: médias móveis de **5, 10 e 20** dias e máximas e mínimas de 5, 
 
 ## 2. Modelo 2: single names, dividendos e tendência
 
-- **Universo**: todos os BDRs não patrocinados com ativo-objeto identificado (`bdr_master.csv`), **sem REITs** (pela indústria GICS da Bloomberg, com a marcação "REIT" do programa como fallback) ⚠️ viés de sobrevivência (ver 4.2).
+- **Universo**: todos os BDRs não patrocinados com ativo-objeto identificado (`bdr_master.csv`), **sem REITs** (pela indústria GICS da Bloomberg). O default é o **S&P 500 point-in-time** (`dividend.universe: spx_pit`, decisão 4.2c). A lista atual de BDRs (`bdr_list`) roda só como comparação, porque tem viés de sobrevivência.
 - **Elegível em t**:
   1. DY de 12 meses (bruto, point-in-time, `EQY_DVD_YLD_12M`) **> 0**;
   2. DY no **1º quartil** (os 25% maiores) do universo em *t*;
@@ -60,34 +60,80 @@ Parâmetros: médias móveis de **5, 10 e 20** dias e máximas e mínimas de 5, 
 - **Teto setorial**: no máximo 5 papéis por setor GICS.
 - **Stop (única saída)**: série relativa `R = P_ação / P_IVVB11`. Sai quando `R_t / máx(R desde a entrada) − 1 ≤ −6%`. Se o papel nunca andou, o stop é −6% desde a entrada.
 - **Cooldown**: 15 pregões após o stop, sem reentrada no mesmo papel.
+- O stop é **sempre contra o IVVB11**, inclusive na variante `long_only`. Nela, só o sinal de entrada usa `P / CDI`.
 - **Hedge**: as três variantes de 0.1.
 
 ## 3. Dados (export Bloomberg)
 
-Os tickers são gerados por `python BDR/scripts/make_bloomberg_request.py` em `BDR/data/bloomberg_request/`. O formato é o mesmo do repo: wide, `Dates` em `dd/mm/aaaa`, desde 02/01/2008.
+Os arquivos vão em `BDR/data/raw/` (não versionado). O formato é o mesmo do repo: wide, `Dates` em `dd/mm/aaaa`, desde 02/01/2008, com as colunas `XXX US Equity`.
+
+Ordem do export:
+1. Composição histórica do `SPX Index` (`INDX_MWEIGHT_HIST` com `END_DATE_OVERRIDE` em cada fim de mês) → `spx_composition.txt` (`data;ticker;peso`).
+2. Todos os tickers que aparecem nela (inclusive os deslistados), mais os de `BDR/data/bloomberg_request/tickers_us.txt` (ETFs, IVV e ações dos BDRs atuais).
 
 | Arquivo | Tickers | Campo |
 |---|---|---|
-| `bdr_us_px.txt` | ETFs + IVV + ações-objeto (`XXX US Equity`) | `PX_LAST` |
+| `spx_composition.txt` | `SPX Index`, um bloco por fim de mês | `INDX_MWEIGHT_HIST` |
+| `bdr_us_px.txt` | ETFs + IVV + ações (`XXX US Equity`) | `PX_LAST` |
 | `bdr_us_tr.txt` | Mesmos tickers | `TOT_RETURN_INDEX_GROSS_DVDS` |
 | `bdr_us_dy.txt` | Ações-objeto | `EQY_DVD_YLD_12M` |
 | `bdr_static.csv` | Ações-objeto | `GICS_SECTOR_NAME`, `GICS_INDUSTRY_NAME` (estático) |
 | `bdr_fx.txt` | `USDBRL Curncy` | `PX_LAST` |
-| CDI | O mesmo `market.txt` do modelo do IBRA | — |
+| `market.txt` | O mesmo do modelo do IBRA (coluna `CDI` em índice acumulado) | — |
 
-## 4. Em aberto ⚠️
+## 4. Decisões
 
-### 4.1 Combinação das médias e das máximas/mínimas
-Proposta de default (5/10/20):
-- **Liga** quando `MA5 > MA10 > MA20` (médias alinhadas) **e** `R_t ≥ máx(R, 20)` (rompimento).
-- **Desliga** quando `MA5 < MA10` **ou** `R_t ≤ mín(R, 10)`. Só vale para o modelo 1; no modelo 2 a saída é só pelo stop.
+### 4.1 Combinação das médias e das máximas/mínimas (confirmado)
+Default (5/10/20):
+- **Liga** quando `MA5 > MA10 > MA20` (médias alinhadas) **e** `R_t` supera a máxima dos 20 pregões anteriores (rompimento Donchian).
+- **Desliga** quando `MA5 < MA10` **ou** `R_t` fica abaixo da mínima dos 10 pregões anteriores. Só vale para o modelo 1; no modelo 2 a saída é só pelo stop.
 - **Versão lenta**: as mesmas regras com janelas ×4 (20/40/80).
 
-### 4.2 Viés de sobrevivência do universo de single names
+### 4.2 Viés de sobrevivência do universo de single names — **decidido: (c)**
 A lista de BDRs é a **de hoje**. Usá-la em 2010 é escolher empresas que sobreviveram e cresceram o bastante para ganhar BDR. Opções:
 - (a) Usar a lista atual e aceitar o viés, que fica reportado.
 - (b) Só permitir o papel a partir da data de listagem do BDR. Como a maioria foi listada em 2019 ou depois, o backtest útil fica curto.
 - (c) Universo point-in-time do S&P 500 (`INDX_MWEIGHT_HIST`), sem REITs, como proxy do que "seria BDR", com (a) como comparação.
 
-### 4.3 Beta em US$ vs. R$
+### 4.3 Beta em US$ vs. R$ — **decidido: US$**
 Em R$ as duas pernas carregam o mesmo dólar. O beta fica puxado para 1 e mistura câmbio com sensibilidade ao S&P. A proposta é o beta em **US$**, que mede só a sensibilidade de mercado. O residual cambial (1 − β) da variante `ls_beta` fica reportado; quem não o quiser usa a `ls_notional`.
+
+## 5. Como rodar
+
+```bash
+python BDR/scripts/generate_sample.py                     # dados sintéticos em BDR/data/sample (já versionados)
+python BDR/scripts/run_bdr_backtest.py --config BDR/configs/experiments/sample.yaml
+# com os dados reais em BDR/data/raw/:
+python BDR/scripts/run_bdr_backtest.py --config BDR/configs/experiments/setorial_amplo.yaml
+python BDR/scripts/run_bdr_backtest.py --config BDR/configs/experiments/dividendos_spx.yaml
+```
+
+Experimentos em `BDR/configs/experiments/`:
+
+| yaml | O que roda |
+|---|---|
+| `setorial_amplo` | 11 ETFs, janelas 5/10/20 |
+| `setorial_amplo_lento` | 11 ETFs, janelas 20/40/80 |
+| `setorial_completo` | 23 ETFs (amplo + subsetores) |
+| `dividendos_spx` | S&P 500 point-in-time, janelas 5/10/20 |
+| `dividendos_spx_lento` | Igual, com janelas 20/40/80 |
+| `dividendos_lista_bdr` | Lista atual de BDRs (com viés de sobrevivência, só para comparação) |
+
+Cada rodada roda as três variantes (`long_only`, `ls_beta`, `ls_notional`) e grava em `BDR/results/<run_id>/`:
+- `nav_*.parquet`, `trades_*.parquet` e `positions_*.parquet`;
+- `book_*.parquet` (só no modelo de dividendos: ocupação do book por dia);
+- `summary.json`, `metrics.md` (total, calibração e OOS) e `config.yaml`.
+
+### Código
+
+| Módulo | Papel |
+|---|---|
+| `config.py` | yaml validado (pydantic; chave desconhecida é erro) |
+| `data.py` | Export Bloomberg → preço sintético em R$ no calendário B3; beta móvel |
+| `signals.py` | Tendência relativa (médias alinhadas + Donchian), estado liga/desliga |
+| `strategies.py` | `SectorStrategy` (1/n) e `DividendStrategy` (20 vagas, DY, stop, cooldown, teto setorial) |
+| `engine.py` | Motor diário: execução em t+1, custos, CDI, aluguel e hedge agregado |
+| `runner.py` | Monta universo, sinais e betas, roda as variantes, métricas e gravação |
+| `synthetic.py` | Dados sintéticos no formato Bloomberg |
+
+Testes em `BDR/bdr_tests/`: fórmulas do preço sintético e do beta, sinal e histerese, execução em t+1, custos, CDI, hedge e aluguel, stop de 6% do pico, cooldown, prioridade por DY, quartil, teto setorial e look-ahead no pipeline inteiro.

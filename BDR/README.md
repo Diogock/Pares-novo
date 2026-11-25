@@ -1,8 +1,9 @@
 # BDR — BDRs não patrocinados na B3
 
 Frente de pesquisa **separada** do modelo de pares do IBRA (raiz do repositório).
-Aqui ficam a lista de BDRs, os scripts de coleta e as ideias de estratégia.
-Nada desta pasta é importado por `src/pairs_ibra/`.
+Aqui ficam a lista de BDRs, os scripts de coleta, as ideias de estratégia e o pacote `bdr_models`
+(`BDR/src/`), com os modelos de tendência setorial e de dividendos (ver `MODELOS.md`).
+O `bdr_models` usa utilitários do `pairs_ibra`, mas o contrário não acontece.
 
 ## O que tem aqui
 

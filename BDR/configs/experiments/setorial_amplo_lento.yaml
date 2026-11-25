@@ -1,0 +1,8 @@
+extends: setorial_amplo.yaml
+name: setorial_amplo_lento
+trend:  # janelas x4
+  fast: 20
+  mid: 40
+  slow: 80
+  entry_high: 80
+  exit_low: 40

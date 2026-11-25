@@ -1,0 +1,4 @@
+extends: ../base.yaml
+name: dividendos_spx
+backtest:
+  model: dividend

@@ -1,0 +1,4 @@
+extends: sample.yaml
+name: sample_dividendos
+backtest:
+  model: dividend
