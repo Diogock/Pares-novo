@@ -1,0 +1,8 @@
+# Dados sintéticos (BDR/data/sample, gerados por BDR/scripts/generate_sample.py)
+extends: ../base.yaml
+name: sample
+data:
+  raw_dir: BDR/data/sample
+  end: 2014-12-31
+backtest:
+  calibration_end: 2010-12-31

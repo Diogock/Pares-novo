@@ -19,3 +19,7 @@ data/external/*
 !data/external/.gitkeep
 
 results/
+
+# modelos BDR
+BDR/results/
+BDR/data/raw/

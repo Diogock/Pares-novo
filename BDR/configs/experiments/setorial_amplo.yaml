@@ -1,0 +1,4 @@
+extends: ../base.yaml
+name: setorial_amplo
+backtest:
+  model: sector

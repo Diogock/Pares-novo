@@ -1,0 +1,8 @@
+extends: dividendos_spx.yaml
+name: dividendos_spx_lento
+trend:
+  fast: 20
+  mid: 40
+  slow: 80
+  entry_high: 80
+  exit_low: 40

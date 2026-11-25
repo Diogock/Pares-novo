@@ -1,0 +1,4 @@
+extends: dividendos_spx.yaml
+name: dividendos_lista_bdr  # com viés de sobrevivência (comparação)
+dividend:
+  universe: bdr_list

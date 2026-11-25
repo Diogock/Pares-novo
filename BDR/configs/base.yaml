@@ -1,0 +1,73 @@
+# Defaults dos modelos BDR (BDR/MODELOS.md). Caminhos relativos à raiz do repositório.
+name: bdr_base
+
+data:
+  raw_dir: BDR/data/raw
+  files:
+    us_px: bdr_us_px.txt
+    us_tr: bdr_us_tr.txt
+    fx: bdr_fx.txt
+    market: market.txt
+    dy: bdr_us_dy.txt
+    static: bdr_static.csv
+    spx_composition: spx_composition.txt
+  delimiter: ","
+  date_format: "%d/%m/%Y"
+  na_values: ["#N/A", "#N/A N/A", ""]
+  cdi_column: CDI
+  fx_column: USDBRL
+  hedge_ticker: IVV
+  calendar: BVMF
+  max_ffill_days: 5
+  withholding_tax: 0.30
+  start: 2008-01-02
+
+trend:            # rápido: médias 5/10/20, máxima de 20 e mínima de 10
+  fast: 5
+  mid: 10
+  slow: 20
+  entry_high: 20
+  exit_low: 10
+
+hedge:
+  rebalance_band: 0.05
+  beta:
+    window: 252
+    min_obs: 126
+    clip_min: 0.5
+    clip_max: 2.0
+    recalc: monthly
+    fallback: 1.0
+
+costs:
+  trade_bps_long: 8
+  trade_bps_hedge: 4
+  borrow_rate_ann: 0.03
+  cash_spread_bps: 4
+  days_per_year: 252
+
+sector:
+  universe: amplo
+  etfs_file: BDR/data/bloomberg_request/etfs.csv
+  min_history_days: 252
+  rebalance: monthly
+
+dividend:
+  universe: spx_pit
+  bdr_list_file: BDR/data/bloomberg_request/acoes.csv
+  exclude_industry_contains: ["REIT"]
+  n_slots: 20
+  slot_weight: 0.05
+  dy_quantile: 0.75
+  min_dy: 0.0
+  max_per_sector: 5
+  stop_drawdown: 0.06
+  cooldown_days: 15
+  min_history_days: 252
+
+backtest:
+  model: sector
+  variants: [long_only, ls_beta, ls_notional]
+  initial_nav: 100000000
+  calibration_end: 2012-12-31
+  results_dir: BDR/results

@@ -283,7 +283,8 @@ pairs-ibra/
 │   ├── run_backtest.py        # --config configs/experiments/x.yaml
 │   └── daily_signals.py
 ├── tests/
-└── results/                   # (gitignored)
+├── results/                   # (gitignored)
+└── BDR/                       # frente separada: BDRs (lista, ideias e o pacote bdr_models em BDR/src, spec em BDR/MODELOS.md); src/pairs_ibra não importa nada dela
 ```
 
 ### 7.1 Interfaces-chave
