@@ -283,7 +283,8 @@ pairs-ibra/
 │   ├── run_backtest.py        # --config configs/experiments/x.yaml
 │   └── daily_signals.py
 ├── tests/
-└── results/                   # (gitignored)
+├── results/                   # (gitignored)
+└── BDR/                       # frente separada: BDRs não patrocinados (lista, scripts, ideias); não é importada por src/
 ```
 
 ### 7.1 Interfaces-chave
